@@ -1,0 +1,27 @@
+FROM node:22-alpine
+
+# 作業ディレクトリ作成
+WORKDIR /app
+
+# 開発ユーザーの作成
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# package.json系を先にコピーして依存解決（キャッシュ効く）
+COPY package*.json ./
+RUN npm install
+
+# 残りのソースコードをコピー
+COPY . .
+
+RUN chown -R appuser:appgroup /app
+RUN chmod +x /app/scripts/entrypoint.sh
+
+# 開発モード指定
+ENV NODE_ENV=development
+
+# 非rootユーザーに切り替え
+USER appuser
+
+# 開発サーバー起動（ts-node-dev前提）
+ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+CMD ["npm", "run", "dev"]
