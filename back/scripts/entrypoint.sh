@@ -15,5 +15,8 @@ echo "[Entrypoint] Set DATABASE_URL"
 
 echo "[Entrypoint] Connecting to postgres://${DB_USER}:xxx@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
+echo "[Entrypoint] Running migrations..."
+npx prisma migrate deploy
+
 echo "[Entrypoint] Starting server..."
 exec "$@"

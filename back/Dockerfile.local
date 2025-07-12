@@ -13,6 +13,9 @@ RUN npm install
 # 残りのソースコードをコピー
 COPY . .
 
+# prismaのファイル生成
+RUN npm run generate
+
 RUN chown -R appuser:appgroup /app
 RUN chmod +x /app/scripts/entrypoint.sh
 
