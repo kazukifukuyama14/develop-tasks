@@ -15,9 +15,8 @@ import {
   ListItemButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-
 import { useDevice } from "@/hooks/useDevice";
-import { signOut } from "@aws-amplify/auth";
+import { signOut } from "aws-amplify/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePublicNavigate } from "../../routes/usePublicNavigate";
 
@@ -35,11 +34,17 @@ const Layout = () => {
 
   // ログアウト処理
   const handleLogout = async () => {
-    // global: true によって他端末からもログアウトします
-    await signOut({ global: true });
-    // キャッシュ削除
-    await queryClient.clear();
-    authNavigate.login();
+    try {
+      // Amplify v6では signOut() のオプションが変更されています
+      await signOut();
+      // キャッシュ削除
+      await queryClient.clear();
+      authNavigate.login();
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+      // エラーが発生してもログインページに遷移
+      authNavigate.login();
+    }
   };
 
   const drawerContent = (
@@ -55,7 +60,6 @@ const Layout = () => {
     >
       <div>
         <Toolbar />
-
         <List sx={{ pt: 0 }}>
           {[
             { label: "Top", to: "/" },
@@ -85,7 +89,6 @@ const Layout = () => {
           ))}
         </List>
       </div>
-
       {/* ログアウトボタン */}
       <Box sx={{ p: 2 }}>
         <Button

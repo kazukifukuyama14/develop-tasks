@@ -16,9 +16,12 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useTaskListQuery } from "@/hooks/useTask";
 import { formatDate } from "@/utils/date";
 import TaskStatusChip from "../chip/TaskStatusChip";
+import { useModal } from "@/hooks/useModal";
+import CreateTaskModal from "../modal/CreateTaskModal";
 
 const TaskListPage = () => {
   const { data: tasks, isLoading } = useTaskListQuery();
+  const createModal = useModal();
 
   const renderSkeletonRows = () =>
     Array.from({ length: 5 }).map((_, index) => (
@@ -39,7 +42,7 @@ const TaskListPage = () => {
             startIcon={<AddCircleOutlineIcon />}
             size="small"
             variant="contained"
-            onClick={() => {}}
+            onClick={createModal.onOpen}
           >
             新規作成
           </Button>
@@ -75,6 +78,10 @@ const TaskListPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <CreateTaskModal
+        isOpen={createModal.isOpen}
+        onClose={createModal.onClose}
+      />
     </Box>
   );
 };

@@ -1,5 +1,4 @@
 import { Amplify } from "aws-amplify";
-
 import { getEnv } from "./env";
 
 const USER_POOL_ID = getEnv("VITE_COGNITO_USER_POOL_ID");

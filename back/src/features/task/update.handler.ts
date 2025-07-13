@@ -24,8 +24,11 @@ const bodySchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   dueDate: z
-    .date()
-    .min(today, { message: "日付は今日以降を指定してください" })
+    .string()
+    .transform((str) => new Date(str)) // 文字列 → Date 変換
+    .refine((date) => !isNaN(date.getTime()) && date >= today, {
+      message: "日付は今日以降を指定してください",
+    })
     .optional(),
   taskStatus: TaskStatusEnum.optional(),
 });

@@ -1,150 +1,178 @@
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signUp } from "aws-amplify/auth";
+import React, { useState } from "react";
 import {
   Box,
-  Button,
+  Card,
+  CardContent,
   TextField,
+  Button,
   Typography,
-  CircularProgress,
-  Stack,
-  Paper,
+  Alert,
   Container,
-  Link as MuiLink,
+  Link,
 } from "@mui/material";
-import { handleError } from "@/libs/handleError";
-import { usePublicNavigate } from "@/routes/usePublicNavigate";
-import PasswordTextField from "../form/PasswordTextField";
+import { signUp } from "aws-amplify/auth";
+import { useSnackbar } from "notistack";
+import { usePublicNavigate } from "../../routes/usePublicNavigate";
 
-// =============================================
-// Zod schema & Types
-// =============================================
-const userSchema = z
-  .object({
-    email: z
-      .string()
-      .email({ message: "メールアドレス形式で入力してください" }),
-    password: z
-      .string()
-      .min(8, { message: "パスワードは8文字以上で入力してください" }),
-    confirmPassword: z.string(),
-    name: z.string().min(1, { message: "ユーザー名を入力してください" }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "パスワードと確認用パスワードが一致しません",
-    path: ["confirmPassword"],
+const SignupPage: React.FC = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = usePublicNavigate();
 
-type UserFormInput = z.infer<typeof userSchema>;
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-// =============================================
-// Component
-// =============================================
-const SignupPage = () => {
-  const publicNavigate = usePublicNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<UserFormInput>({
-    resolver: zodResolver(userSchema),
-    mode: "onBlur",
-  });
+    // パスワード確認
+    if (formData.password !== formData.confirmPassword) {
+      setError("パスワードが一致しません");
+      return;
+    }
 
-  const onSubmit = async (data: UserFormInput) => {
+    setLoading(true);
+
     try {
-      const { email, password, name } = data;
-      const res = await signUp({
-        username: email,
-        password,
+      const { isSignUpComplete, userId, nextStep } = await signUp({
+        username: formData.username,
+        password: formData.password,
         options: {
           userAttributes: {
-            name,
+            email: formData.email,
           },
         },
       });
 
-      if (res.nextStep?.signUpStep === "CONFIRM_SIGN_UP") {
-        // 確認コード入力画面へ
-        publicNavigate.emailVerify({
-          state: { username: email }, // 後で confirmSignUp に渡すため保持
-        });
-      }
-    } catch (err) {
-      handleError(err, { defaultMessage: "登録に失敗しました" });
+      console.log("サインアップ成功:", { isSignUpComplete, userId, nextStep });
+      enqueueSnackbar(
+        "登録が完了しました。確認コードをメールで送信しました。",
+        { variant: "success" }
+      );
+
+      // メール確認ページに遷移（ユーザー名とメールアドレスを渡す）
+      navigate.emailVerify({
+        state: {
+          username: formData.username,
+          email: formData.email,
+        },
+      });
+    } catch (error: any) {
+      console.error("サインアップエラー:", error);
+      const errorMessage = error.message || "サインアップに失敗しました";
+      setError(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: "error" });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   return (
     <Container maxWidth="sm">
-      <Paper sx={{ my: 4, p: 4 }}>
-        <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          sx={{ width: "100%", mx: "auto" }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="h5" component="h1" textAlign="center">
-              ユーザー作成
+      <Box sx={{ mt: 8 }}>
+        <Card>
+          <CardContent>
+            <Typography variant="h4" component="h1" gutterBottom align="center">
+              新規登録
             </Typography>
-            <TextField
-              label="メールアドレス"
-              type="email"
-              autoComplete="email"
-              error={!!errors.email}
-              helperText={errors.email?.message}
-              {...register("email")}
-              fullWidth
-            />
-            <PasswordTextField
-              label="パスワード"
-              autoComplete="new-password"
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              {...register("password")}
-              fullWidth
-            />
-            <PasswordTextField
-              label="パスワード（確認用）"
-              autoComplete="new-password"
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword?.message}
-              {...register("confirmPassword")}
-              fullWidth
-            />
-            <TextField
-              label="ユーザー名"
-              autoComplete="name"
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              {...register("name")}
-              fullWidth
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting}
-              startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-            >
-              送信
-            </Button>
-            <Typography textAlign="center" variant="body2">
-              すでにアカウントをお持ちですか？
-              <MuiLink
-                component="button"
-                variant="body2"
-                onClick={(e) => {
-                  e.preventDefault(); // フォームsubmit誤発火防止
-                  setTimeout(() => publicNavigate.login(), 0);
-                }}
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSignUp}>
+              <TextField
+                fullWidth
+                name="username"
+                label="ユーザー名"
+                value={formData.username}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                helperText="英数字で入力してください"
+                autoComplete="username"
+              />
+
+              <TextField
+                fullWidth
+                name="email"
+                label="メールアドレス"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                helperText="確認コードの送信先になります"
+                autoComplete="email"
+              />
+
+              <TextField
+                fullWidth
+                name="password"
+                label="パスワード"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                helperText="8文字以上で入力してください"
+                autoComplete="new-password"
+              />
+
+              <TextField
+                fullWidth
+                name="confirmPassword"
+                label="パスワード（確認）"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                helperText="上記と同じパスワードを入力してください"
+                autoComplete="new-password"
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                disabled={loading}
               >
-                ログイン
-              </MuiLink>
-            </Typography>
-          </Stack>
-        </Box>
-      </Paper>
+                {loading ? "登録中..." : "新規登録"}
+              </Button>
+            </Box>
+
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Typography variant="body2">
+                すでにアカウントをお持ちの方は{" "}
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={() => navigate.login()}
+                  sx={{ cursor: "pointer" }}
+                >
+                  ログイン
+                </Link>
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
     </Container>
   );
 };

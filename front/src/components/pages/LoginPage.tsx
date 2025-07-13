@@ -1,123 +1,186 @@
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "aws-amplify/auth";
+import React, { useState } from "react";
 import {
   Box,
-  Button,
+  Card,
+  CardContent,
   TextField,
+  Button,
   Typography,
-  CircularProgress,
-  Stack,
-  Paper,
+  Alert,
   Container,
-  Link as MuiLink,
+  Link,
 } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { signIn } from "aws-amplify/auth";
+import { useSnackbar } from "notistack";
+import { useLocation } from "react-router-dom";
+import { useAppNavigate } from "../../routes/useAppNavigate";
+import { usePublicNavigate } from "../../routes/usePublicNavigate";
 
-import { usePublicNavigate } from "@/routes/usePublicNavigate";
-import { handleError } from "@/libs/handleError";
-import PasswordTextField from "../form/PasswordTextField";
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
 
-// =============================================
-// Zod schema & Types
-// =============================================
-const userSchema = z.object({
-  email: z.string().email({ message: "メールアドレス形式で入力してください" }),
-  password: z
-    .string()
-    .min(8, { message: "パスワードは8文字以上で入力してください" }),
-});
-
-type UserFormInput = z.infer<typeof userSchema>;
-
-// =============================================
-// Component
-// =============================================
-const LoginPage = () => {
-  const location = useLocation();
-  const publicNavigate = usePublicNavigate();
-  const navigate = useNavigate();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<UserFormInput>({
-    resolver: zodResolver(userSchema),
-    mode: "onBlur",
+const LoginPage: React.FC = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
   });
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const location = useLocation();
+  const appNavigate = useAppNavigate();
+  const publicNavigate = usePublicNavigate();
 
-  // 認証失敗で遷移してきた場合の遷移元
-  const from = location.state?.from?.pathname || "/";
+  const state = location.state as LocationState;
+  const from = state?.from?.pathname || "/";
 
-  const onSubmit = async (data: UserFormInput) => {
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    console.log("ログイン試行:", { username: formData.username });
+
     try {
-      const { email, password } = data;
-      await signIn({
-        username: email,
-        password,
+      const { isSignedIn, nextStep } = await signIn({
+        username: formData.username,
+        password: formData.password,
       });
-      // 遷移元に遷移するために、useNavigateを使います。
-      navigate(from, { replace: true });
-    } catch (err) {
-      handleError(err, { defaultMessage: "ログインに失敗しました。" });
+
+      console.log("サインイン成功:", { isSignedIn, nextStep });
+      enqueueSnackbar(`ようこそ、${formData.username}さん！`, {
+        variant: "success",
+      });
+
+      // 元のページまたはトップページにリダイレクト
+      if (from === "/") {
+        appNavigate.top();
+      } else {
+        window.location.href = from;
+      }
+    } catch (error: any) {
+      console.error("サインインエラー:", error);
+      console.error("エラーの詳細:", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+      });
+
+      let errorMessage = "サインインに失敗しました";
+
+      // エラーメッセージをより具体的に
+      if (error.name === "NotAuthorizedException") {
+        errorMessage = "ユーザー名またはパスワードが正しくありません";
+      } else if (error.name === "UserNotConfirmedException") {
+        errorMessage = "メール確認が完了していません。確認ページに移動します。";
+        enqueueSnackbar(errorMessage, { variant: "warning" });
+        // メール確認ページに遷移
+        publicNavigate.emailVerify({ state: { username: formData.username } });
+        return;
+      } else if (error.name === "UserNotFoundException") {
+        errorMessage = "ユーザーが見つかりません";
+      } else {
+        errorMessage = error.message || "サインインに失敗しました";
+      }
+
+      setError(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: "error" });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   return (
     <Container maxWidth="sm">
-      <Paper sx={{ my: 4, p: 4 }}>
-        <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          sx={{ width: "100%", mx: "auto" }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="h5" component="h1" textAlign="center">
+      <Box sx={{ mt: 8 }}>
+        <Card>
+          <CardContent>
+            <Typography variant="h4" component="h1" gutterBottom align="center">
               ログイン
             </Typography>
-            <TextField
-              label="メールアドレス"
-              type="email"
-              autoComplete="email"
-              error={!!errors.email}
-              helperText={errors.email?.message}
-              {...register("email")}
-              fullWidth
-            />
-            <PasswordTextField
-              label="パスワード"
-              autoComplete="new-password"
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              {...register("password")}
-              fullWidth
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting}
-              startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-            >
-              ログイン
-            </Button>
-            <Typography textAlign="center" variant="body2">
-              アカウントをお持ちでないですか？
-              <MuiLink
-                component="button"
-                variant="body2"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setTimeout(() => publicNavigate.signup(), 0);
-                }}
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSignIn}>
+              <TextField
+                fullWidth
+                name="username"
+                label="メールアドレス"
+                type="email"
+                value={formData.username}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                autoComplete="email"
+                helperText="登録時に使用したメールアドレスを入力してください"
+              />
+
+              <TextField
+                fullWidth
+                name="password"
+                label="パスワード"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                margin="normal"
+                required
+                autoComplete="current-password"
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                disabled={loading}
               >
-                新規登録
-              </MuiLink>
-            </Typography>
-          </Stack>
-        </Box>
-      </Paper>
+                {loading ? "ログイン中..." : "ログイン"}
+              </Button>
+            </Box>
+
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Typography variant="body2">
+                アカウントをお持ちでない方は{" "}
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={() => publicNavigate.signup()}
+                  sx={{ cursor: "pointer" }}
+                >
+                  新規登録
+                </Link>
+              </Typography>
+            </Box>
+
+            {/* テスト用の情報表示 */}
+            <Box sx={{ mt: 3, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+              <Typography variant="caption" display="block" gutterBottom>
+                テスト用アカウント:
+              </Typography>
+              <Typography variant="caption" display="block">
+                メール: test@example.com
+              </Typography>
+              <Typography variant="caption" display="block">
+                パスワード: TestPass123!
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
     </Container>
   );
 };
