@@ -11,11 +11,12 @@ provider "aws" {
   // リージョン
   region  = "ap-northeast-1"
   profile = "dev"
+
   // 作成するリソースの共通タグ
   default_tags {
     tags = {
-      Project     = var.Project
-      Environment = var.Environment
+      Project     = var.project_settings.project
+      Environment = var.project_settings.environment
       ManagedBy   = "Terraform"
     }
   }
