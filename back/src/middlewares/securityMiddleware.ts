@@ -27,7 +27,7 @@ export const securityMiddleware: express.RequestHandler = (req, res, next) => {
   // CORS用ミドルウェアを生成して即時実行
   cors({
     origin: appConfig.corsOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })(req, res, (err) => {

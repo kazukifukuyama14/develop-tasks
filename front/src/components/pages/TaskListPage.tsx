@@ -18,10 +18,13 @@ import { formatDate } from "@/utils/date";
 import TaskStatusChip from "../chip/TaskStatusChip";
 import { useModal } from "@/hooks/useModal";
 import CreateTaskModal from "../modal/CreateTaskModal";
+import { useDetailModal } from "@/hooks/useDetailModal";
+import DetailTaskModal from "../modal/DetailTaskModal";
 
 const TaskListPage = () => {
   const { data: tasks, isLoading } = useTaskListQuery();
   const createModal = useModal();
+  const detailModal = useDetailModal();
 
   const renderSkeletonRows = () =>
     Array.from({ length: 5 }).map((_, index) => (
@@ -63,7 +66,12 @@ const TaskListPage = () => {
             {isLoading && renderSkeletonRows()}
             {!isLoading &&
               tasks?.map((task) => (
-                <TableRow key={task.id} onClick={() => {}}>
+                <TableRow
+                  key={task.id}
+                  onClick={() => {
+                    detailModal.onOpen(task.id);
+                  }}
+                >
                   <TableCell>{task.title}</TableCell>
                   <TableCell>
                     <TaskStatusChip status={task.status} />
@@ -82,6 +90,13 @@ const TaskListPage = () => {
         isOpen={createModal.isOpen}
         onClose={createModal.onClose}
       />
+      {detailModal.taskId && (
+        <DetailTaskModal
+          isOpen={detailModal.isOpen}
+          onClose={detailModal.onClose}
+          taskId={detailModal.taskId}
+        />
+      )}
     </Box>
   );
 };
