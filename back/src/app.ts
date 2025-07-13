@@ -6,6 +6,7 @@ import { securityMiddleware } from "./middlewares/securityMiddleware";
 import publicRouter from "./routes/public/publicRouter";
 import { ERROR_CODE } from "../src/eroors/errorCode";
 import { sendError } from "./libs/response";
+import privateRouter from "./routes/private/privateRouter";
 
 const app = express();
 
@@ -20,8 +21,8 @@ app.use(securityMiddleware);
 // ログインなしで使えるAPI（例: /public/health, /public/version）
 app.use("/public", publicRouter);
 
-// まだ作ってないけど、今後ここに認証付きルートを追加する予定
-// app.use("/tasks", taskRouter);
+// ログインが必要なAPI
+app.use("/v1", privateRouter);
 
 // 404エラー用
 app.use((_req, res) => {
