@@ -1,7 +1,10 @@
 locals {
   # 名前の前に共通の接頭語（prefix）をつけたいときに使う
   # 例: taskfolio-local-yuyan-user-pool など
-  name_prefix = "${var.project_settings.project}-${var.project_settings.environment}-${var.project_settings.developer}"
+  # name_prefix = "${var.project_settings.project}-${var.project_settings.environment}-${var.project_settings.developer}"
+
+  # Cognitoモジュールの分岐設定
+  name_prefix = var.project_settings.developer != null && var.project_settings.developer != "" ? "${var.project_settings.project}-${var.project_settings.environment}-${var.project_settings.developer}" : "${var.project_settings.project}-${var.project_settings.environment}"
 }
 
 resource "aws_cognito_user_pool" "this" {

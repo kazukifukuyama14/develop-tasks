@@ -23,3 +23,20 @@ module "debug" {
     availability_zone       = var.network_settings.availability_zones[0]
   }
 }
+
+# ============================================
+# Cognitoモジュール
+# ============================================
+module "cognito" {
+  source           = "../../modules/cognito"
+  project_settings = var.project_settings
+}
+
+# ============================================
+# ECRモジュール
+# ============================================
+module "ecr" {
+  source           = "../../modules/ecr"
+  project_settings = var.project_settings
+  ecr_settings     = var.ecr_settings
+}
