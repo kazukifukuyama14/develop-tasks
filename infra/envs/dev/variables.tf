@@ -54,3 +54,23 @@ variable "ecr_settings" {
   })
 }
 
+# 本番環境フラグ
+variable "is_production" {
+  description = "本番環境か判定するフラグ(trueで本番環境)"
+  type        = bool
+  default     = false
+}
+
+# ============================================
+# RDS用の設定
+# ============================================
+variable "rds_settings" {
+  description = "RDSポート番号等の設定"
+  type = object({
+    instance_type = string
+    db_name       = string
+    db_user       = string
+    db_user       = string
+    db_password   = string
+  })
+}

@@ -40,3 +40,20 @@ module "ecr" {
   project_settings = var.project_settings
   ecr_settings     = var.ecr_settings
 }
+
+# ============================================
+# RDSモジュール
+# ============================================
+module "rds" {
+  source           = "../../modules/rds"
+  project_settings = var.project_settings
+  is_production    = var.is_production
+  rds_settings = {
+    rds_subnet_ids = module.network.subnet_ids.rds
+    rds_sg_id      = module.network.security_group_ids.rds
+    db_name        = var.rds_settings.db_name
+    db_password    = var.rds_settings.db_password
+    db_user        = var.rds_settings.db_user
+    instance_type  = var.rds_settings.instance_type
+  }
+}
