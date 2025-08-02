@@ -70,7 +70,6 @@ variable "rds_settings" {
     instance_type = string
     db_name       = string
     db_user       = string
-    db_user       = string
     db_password   = string
   })
 }

@@ -69,7 +69,7 @@ resource "aws_db_instance" "this" {
     prevent_destroy = false
 
     # 変更を無視する属性を指定
-    ignore_changes = [[final_snapshot_identifier]]
+    ignore_changes = [final_snapshot_identifier]
   }
 
   tags = {
