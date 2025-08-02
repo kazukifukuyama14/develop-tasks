@@ -30,7 +30,7 @@ resource "aws_db_instance" "this" {
   parameter_group_name = aws_db_parameter_group.parameter_group.name
 
   # 削除防止設定
-  deletion_protection = ver.is_production
+  deletion_protection = var.is_production
 
   # 削除時にスナップショット取得可否(trueだとスナップショットを作成せずにそのまま削除される)
   # ※学習用のためtrueに設定

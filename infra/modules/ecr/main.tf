@@ -17,9 +17,9 @@ resource "aws_ecr_repository" "repository" {
 resource "aws_ecr_lifecycle_policy" "policy" {
   # ECRリポジトリのライフサイクルポリシー設定
   # 古いイメージを自動的に削除するためのルールを定義
-  repository = aws_ecr_repository.repository.repository.name
+  repository = aws_ecr_repository.repository.name
 
-  policy = jsondecode({
+  policy = jsonencode({
     rules = [
       {
         rulePolicy  = 1
@@ -51,4 +51,3 @@ resource "aws_ecr_lifecycle_policy" "policy" {
     ]
   })
 }
-
