@@ -22,8 +22,8 @@ resource "aws_ecr_lifecycle_policy" "policy" {
   policy = jsonencode({
     rules = [
       {
-        rulePolicy  = 1
-        description = "Keep branch-tagged images"
+        rulePriority = 1
+        description  = "Keep branch-tagged images"
         selection = {
           tagStatus     = "tagged"
           tagPrefixList = ["${var.project_settings.environment}-"]
@@ -36,8 +36,8 @@ resource "aws_ecr_lifecycle_policy" "policy" {
         }
       },
       {
-        rulePolicy  = 2
-        description = "Delete untagged images after 7 days"
+        rulePriority = 2
+        description  = "Delete untagged images after 7 days"
         selection = {
           tagStatus   = "untagged"
           countType   = "sinceImagePushed"
