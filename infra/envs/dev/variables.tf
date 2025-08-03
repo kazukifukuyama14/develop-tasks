@@ -73,3 +73,15 @@ variable "rds_settings" {
     db_password   = string
   })
 }
+
+# ============================================
+# ドメイン設定
+# ============================================
+variable "domain_settings" {
+  description = "ホストゾーンIDやドメイン名などドメイン設定"
+  type = object({
+    zone_id       = string
+    base_domain   = string
+    domain_prefix = optional(string)
+  })
+}
