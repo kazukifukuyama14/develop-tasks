@@ -84,7 +84,7 @@ module "alb" {
   is_production    = var.is_production
   domain_settings  = var.domain_settings
   alb_settings = {
-    vpc_id      = module.network.vpc_id
+    vpc_id      = module.network.vpc.id
     subnet_ids  = module.network.subnet_ids
     sg_id       = module.network.security_group_ids
     cert_arn    = module.acm_with_validation.api_cert_arn

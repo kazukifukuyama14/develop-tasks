@@ -89,8 +89,8 @@ resource "aws_alb_listener" "https" {
   default_action {
     type = "fixed-response"
     fixed_response {
-      content_type = "texxt/plain"
-      message_body = "Fobidden"
+      content_type = "text/plain"
+      message_body = "Forbidden"
       status_code  = "403"
     }
   }
