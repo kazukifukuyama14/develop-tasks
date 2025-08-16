@@ -131,3 +131,44 @@ module "ssm" {
     "db/password" = "dummy" # パスワードはDBセットアップ後に手動で上書き
   }
 }
+
+# ============================================
+# ECS IAMモジュール
+# ============================================
+module "ecs_iam" {
+  source = "../../modules/ecs_iam"
+
+  project_settings = var.project_settings
+
+  esc_iam_settings = {
+    prefix   = "/${var.project_settings.project}/${var.project_settings.environment}"
+    congnito = module.cognito.user_pool_arn
+  }
+}
+
+# ============================================
+# ECSモジュール
+# ============================================
+module "ecs" {
+  source           = "../../modules/ecs"
+  project_settings = var.project_settings
+
+  ecs_settings = {
+    ecs_subnet_ids         = module.network.subnet_ids.ecs
+    ecs_sg_id              = module.network.security_group_ids.ecs
+    ecs_execution_role_arn = module.ecs_iam.ecs_execution_role_arn
+    ecs_task_role_arn      = module.ecs_iam.ecs_task_role_arn
+    ecr_repository_url     = module.ecr.repository_url
+    alb_target_group_arn   = module.alb.target_group_arn
+  }
+
+  ssm_parameters = {
+    db_host_name         = module.ssm.ssm_parameters["db/host"]
+    db_user              = module.ssm.ssm_parameters["db/user"]
+    db_name              = module.ssm.ssm_parameters["db/name"]
+    db_password          = module.ssm.ssm_secure_params["db/password"]
+    origin_url           = module.ssm.ssm_parameters["app_url"]
+    cognito_user_pool_id = module.ssm.ssm_parameters["cognito/user_pool_id"]
+    cognito_client_id    = module.ssm.ssm_parameters["cognito/client_id"]
+  }
+}
