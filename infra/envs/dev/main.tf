@@ -172,3 +172,17 @@ module "ecs" {
     cognito_client_id    = module.ssm.ssm_parameters["cognito/client_id"]
   }
 }
+
+# ============================================
+# AutoScalingモジュール
+# ============================================
+module "autoscaling" {
+  source = "../../modules/autoscaling"
+
+  project_settings = var.project_settings
+
+  autoscaling_settings = {
+    cluster_name = module.ecs.cluster_name
+    service_name = module.ecs.service_name
+  }
+}
