@@ -6,6 +6,13 @@ variable "project_settings" {
   })
 }
 
+variable "ecs_iam_settings" {
+  description = "ECS IAM設定"
+  type = object({
+    ssm_prefix = string
+  })
+}
+
 variable "cicd_settings" {
   type = object({
     github_repository         = string

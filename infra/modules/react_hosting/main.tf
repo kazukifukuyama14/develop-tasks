@@ -123,9 +123,10 @@ resource "aws_cloudfront_distribution" "react" {
 
 # 独自ドメインで CloudFront にアクセスできるように Route53 のDNSレコードを追加
 resource "aws_route53_record" "react" {
-  zone_id = var.react_settings.zone_id
-  name    = var.react_settings.domain_name
-  type    = "A"
+  zone_id         = var.react_settings.zone_id
+  name            = var.react_settings.domain_name
+  type            = "A"
+  allow_overwrite = true # 既存レコードを上書き
 
   alias {
     name = aws_cloudfront_distribution.react.domain_name

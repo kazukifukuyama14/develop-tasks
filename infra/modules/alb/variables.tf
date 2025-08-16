@@ -32,3 +32,8 @@ variable "alb_settings" {
     bucket_name     = string
   })
 }
+
+variable "domain_name" {
+  description = "ドメイン名"
+  type        = string
+}

@@ -91,10 +91,11 @@ module "alb" {
   project_settings = var.project_settings
   is_production    = var.is_production
   domain_settings  = var.domain_settings
+  domain_name      = "dev.wan0ri.tech"
   alb_settings = {
     vpc_id      = module.network.vpc.id
-    subnet_ids  = module.network.subnet_ids
-    sg_id       = module.network.security_group_ids
+    subnet_ids  = module.network.subnet_ids.alb
+    sg_id       = module.network.security_group_ids.alb
     cert_arn    = module.acm_with_validation.api_cert_arn
     bucket_name = module.s3_alb_log.bucket_name
 
@@ -208,6 +209,9 @@ module "cicd_iam" {
   source = "../../modules/cicd_iam"
 
   project_settings = var.project_settings
+  ecs_iam_settings = {
+    ssm_prefix = "/${var.project_settings.project}/${var.project_settings.environment}"
+  }
   cicd_settings = {
     github_repository         = var.cicd_settings.github_repository
     branch_name               = var.cicd_settings.branch_name

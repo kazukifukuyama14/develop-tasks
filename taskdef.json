@@ -1,0 +1,74 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "276713244139.dkr.ecr.ap-northeast-1.amazonaws.com/taskfolio-dev-ecr-api:test",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "DB_HOST",
+          "valueFrom": "/taskfolio/dev/db/host"
+        },
+        {
+          "name": "DB_USER",
+          "valueFrom": "/taskfolio/dev/db/user"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "/taskfolio/dev/db/password"
+        },
+        {
+          "name": "DB_NAME",
+          "valueFrom": "/taskfolio/dev/db/name"
+        },
+        {
+          "name": "CORS_ORIGIN",
+          "valueFrom": "/taskfolio/dev/app_url"
+        },
+        {
+          "name": "COGNITO_CLIENT_ID",
+          "valueFrom": "/taskfolio/dev/cognito/client_id"
+        },
+        {
+          "name": "COGNITO_USER_POOL_ID",
+          "valueFrom": "/taskfolio/dev/cognito/user_pool_id"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/taskfolio/dev/api",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "taskfolio-dev-api"
+        }
+      },
+      "systemControls": []
+    }
+  ],
+  "family": "taskfolio-dev-ecs-api-task",
+  "taskRoleArn": "arn:aws:iam::276713244139:role/taskfolio-dev-ecs-task-role",
+  "executionRoleArn": "arn:aws:iam::276713244139:role/taskfolio-dev-ecs-execution-role",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024"
+}

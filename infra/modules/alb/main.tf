@@ -34,10 +34,11 @@ resource "aws_alb" "this" {
 
 # ターゲットグループの定義
 resource "aws_alb_target_group" "ecs" {
-  name     = "${local.prefix}-alb-ecs-tg"
-  protocol = "HTTP"
-  port     = 8080
-  vpc_id   = var.alb_settings.vpc_id
+  name        = "${local.prefix}-alb-ecs-tg"
+  protocol    = "HTTP"
+  port        = 8080
+  vpc_id      = var.alb_settings.vpc_id
+  target_type = "ip" # ECS Fargate用
 
   # ヘルスチェックの設定
   health_check {
@@ -112,7 +113,7 @@ resource "aws_alb_listener_rule" "allow_only_domain" {
 
   condition {
     host_header {
-      values = [var.alb_settings.alb_domain_name]
+      values = ["api.${var.domain_name}"]
     }
   }
 }
@@ -120,9 +121,10 @@ resource "aws_alb_listener_rule" "allow_only_domain" {
 # Route53 Aレコードを作成
 # => ユーザーが「api.example.com」でアクセスできるようにする
 resource "aws_route53_record" "api" {
-  zone_id = var.alb_settings.zone_id
-  name    = var.alb_settings.alb_domain_name
-  type    = "A"
+  zone_id         = var.alb_settings.zone_id
+  name            = "api.${var.domain_name}"
+  type            = "A"
+  allow_overwrite = true # 既存レコードを上書き
 
   alias {
     name                   = aws_alb.this.dns_name
