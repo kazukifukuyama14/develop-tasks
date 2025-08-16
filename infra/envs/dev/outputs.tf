@@ -14,3 +14,11 @@ output "ECS_CLUSTER" {
 output "ECS_SERVICE" {
   value = module.ecs.service_name
 }
+
+output "REACT_BUCKET" {
+  value = module.react_hosting.s3_bucket_name
+}
+
+output "CLOUDFRONT_DISTRIBUTION_ID" {
+  value = module.react_hosting.cloudfront_distribution_id
+}

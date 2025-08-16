@@ -186,3 +186,17 @@ module "autoscaling" {
     service_name = module.ecs.service_name
   }
 }
+
+# ============================================
+# ReactHostingモジュール
+# ============================================
+module "react_hosting" {
+  source = "../../modules/react_hosting"
+
+  project_settings = var.project_settings
+  react_settings = {
+    domain_name = local.domain_name
+    cert_arn    = module.acm_with_validation.global_cert_arn
+    zone_id     = var.domain_settings.zone_id
+  }
+}
