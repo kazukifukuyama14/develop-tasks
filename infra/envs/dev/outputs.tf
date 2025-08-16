@@ -22,3 +22,7 @@ output "REACT_BUCKET" {
 output "CLOUDFRONT_DISTRIBUTION_ID" {
   value = module.react_hosting.cloudfront_distribution_id
 }
+
+output "GITHUB_ROLE" {
+  value = module.cicd_iam.github_actions_role_arn
+}

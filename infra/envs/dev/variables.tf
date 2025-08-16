@@ -85,3 +85,14 @@ variable "domain_settings" {
     domain_prefix = optional(string)
   })
 }
+
+# ============================================
+# CI/CD設定
+# ============================================
+variable "cicd_settings" {
+  description = "デプロイに必要な設定(リポジトリやブランチなど)"
+  type = object({
+    github_repository = string
+    branch_name       = string
+  })
+}
